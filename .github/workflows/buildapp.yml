@@ -8,7 +8,7 @@ on:
     inputs:
       sdk_version:
         description: "iOS SDK Version"
-        default: "18.0"
+        default: "17.5"
         required: true
         type: string
       uyou_version:
@@ -136,6 +136,32 @@ jobs:
         env:
           THEOS: ${{ github.workspace }}/theos
           YOUTUBE_URL: ${{ env.URL_YT }}
+
+      - name: Fix delhiIconsEnabled Compilation Error
+        run: |
+          cd ${{ github.workspace }}/main
+          
+          # Fix the compilation error in Tweak.x
+          if [ -f "Tweaks/YouPiP/Tweak.x" ]; then
+            # Check if objc/message.h import exists, if not add it
+            if ! grep -q "#import <objc/message.h>" Tweaks/YouPiP/Tweak.x; then
+              sed -i '' '1i\
+              
+      #import <objc/message.h>
+      
+              ' Tweaks/YouPiP/Tweak.x
+              fi
+            
+            # Replace the problematic line with objc_msgSend version
+            sed -i '' 's/\[YTUIResourcesClass delhiIconsEnabled\]/((BOOL (*)(id, SEL))objc_msgSend)(YTUIResourcesClass, @selector(delhiIconsEnabled))/g' Tweaks/YouPiP/Tweak.x
+            
+            echo "==> Fixed delhiIconsEnabled compilation error"
+          fi
+
+      - name: Fix compiling & Build Package
+        id: build_package
+        run: |
+          # ... rest of your existing build steps
 
       - name: Fix compiling & Build Package
         id: build_package
