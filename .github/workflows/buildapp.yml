@@ -154,6 +154,28 @@ jobs:
             echo "==> Fixed delhiIconsEnabled compilation error"
           fi
 
+      - name: Fix Compilation Errors
+        run: |
+          cd ${{ github.workspace }}/main
+          
+          # Fix YouPiP/Tweak.x - delhiIconsEnabled error
+          if [ -f "Tweaks/YouPiP/Tweak.x" ]; then
+            if ! grep -q "#import <objc/message.h>" Tweaks/YouPiP/Tweak.x; then
+              echo '#import <objc/message.h>' | cat - Tweaks/YouPiP/Tweak.x > temp && mv temp Tweaks/YouPiP/Tweak.x
+            fi
+            sed -i '' 's/\[YTUIResourcesClass delhiIconsEnabled\]/((BOOL (*)(id, SEL))objc_msgSend)(YTUIResourcesClass, @selector(delhiIconsEnabled))/g' Tweaks/YouPiP/Tweak.x
+            echo "==> Fixed YouPiP delhiIconsEnabled error"
+          fi
+          
+          # Fix YouSlider/Tweak.x - colorWithRGBValue:floatAlpha: error
+          if [ -f "Tweaks/YouSlider/Tweak.x" ]; then
+            if ! grep -q "#import <objc/message.h>" Tweaks/YouSlider/Tweak.x; then
+              echo '#import <objc/message.h>' | cat - Tweaks/YouSlider/Tweak.x > temp && mv temp Tweaks/YouSlider/Tweak.x
+            fi
+            sed -i '' 's/\[UIColor colorWithRGBValue:\([^]]*\) floatAlpha:\([^]]*\)\]/((UIColor *(*)(id, SEL, NSInteger, CGFloat))objc_msgSend)([UIColor class], @selector(colorWithRGBValue:floatAlpha:), \1, \2)/g' Tweaks/YouSlider/Tweak.x
+            echo "==> Fixed YouSlider colorWithRGBValue error"
+          fi
+
       - name: Fix compiling & Build Package
         id: build_package
         run: |
