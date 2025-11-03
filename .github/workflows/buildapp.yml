@@ -46,7 +46,7 @@ on:
         default: true
         required: false
         type: boolean
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -70,7 +70,7 @@ jobs:
         run: brew install ldid dpkg make
 
       - name: Set PATH environment variable
-        run: echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH 
+        run: echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
 
       - name: Setup Theos
         uses: actions/checkout@v5
