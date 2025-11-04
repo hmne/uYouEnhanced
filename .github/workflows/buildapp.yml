@@ -137,6 +137,33 @@ jobs:
           THEOS: ${{ github.workspace }}/theos
           YOUTUBE_URL: ${{ env.URL_YT }}
 
+      - name: Fix Compilation Errors
+        run: |
+          cd ${{ github.workspace }}/main
+          
+          echo "==> Fixing compilation errors..."
+          
+          # Fix YouPiP/Tweak.x - delhiIconsEnabled error
+          if [ -f "Tweaks/YouPiP/Tweak.x" ]; then
+            if ! grep -q "#import <objc/message.h>" Tweaks/YouPiP/Tweak.x; then
+              sed -i '' '1s/^/#import <objc\/message.h>\n/' Tweaks/YouPiP/Tweak.x
+            fi
+            sed -i '' 's/\[YTUIResourcesClass delhiIconsEnabled\]/((BOOL (*)(id, SEL))objc_msgSend)(YTUIResourcesClass, @selector(delhiIconsEnabled))/g' Tweaks/YouPiP/Tweak.x
+            echo "✓ Fixed YouPiP/Tweak.x"
+          fi
+          
+          # Fix YouSlider/Tweak.x - colorWithRGBValue:floatAlpha: error
+          if [ -f "Tweaks/YouSlider/Tweak.x" ]; then
+            if ! grep -q "#import <objc/message.h>" Tweaks/YouSlider/Tweak.x; then
+              sed -i '' '1s/^/#import <objc\/message.h>\n/' Tweaks/YouSlider/Tweak.x
+            fi
+            # Replace the colorWithRGBValue:floatAlpha: calls with objc_msgSend
+            sed -i '' 's/\[UIColor colorWithRGBValue:\([0-9xA-Fa-f]*\) floatAlpha:\([0-9.]*\)\]/((UIColor *(*)(id, SEL, NSInteger, CGFloat))objc_msgSend)([UIColor class], @selector(colorWithRGBValue:floatAlpha:), \1, \2)/g' Tweaks/YouSlider/Tweak.x
+            echo "✓ Fixed YouSlider/Tweak.x"
+          fi
+          
+          echo "==> All fixes applied successfully"
+
       - name: Fix delhiIconsEnabled Compilation Error
         run: |
           cd ${{ github.workspace }}/main
